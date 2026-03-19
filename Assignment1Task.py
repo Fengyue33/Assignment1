@@ -32,7 +32,8 @@ class Assignment1:
             printer = self.printerThread(i, self)
             self.pThreads.append(printer)    
         # Start all the threads
-        # Write code here
+        for machine in self.mThreads:
+            machine.start()
 
         # Let the simulation run for some time
         time.sleep(self.SIMULATION_TIME)
