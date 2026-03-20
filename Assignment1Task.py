@@ -20,8 +20,12 @@ class Assignment1:
         self.mThreads = []             # list for machine threads
         self.pThreads = []             # list for printer threads
         # Create semaphores for Task 2
-        self.semaphore = threading.Semaphore(self.NUM_PRINTERS)  # counting semaphore
-        self.binary = threading.Semaphore(1)
+        # empty_slots: tracks available space in queue (initially 5)
+        self.empty_slots = threading.Semaphore(5)
+        # filled_slots: tracks items in queue (initially 0)
+        self.filled_slots = threading.Semaphore(0)
+        # mutex: ensures mutual exclusion when accessing the queue
+        self.mutex = threading.Semaphore(1)
 
     def startSimulation(self):
         # Create Machine and Printer threads   
@@ -67,10 +71,14 @@ class Assignment1:
                 self.printerSleep()
                 # Grab the request at the head of the queue and print it
                 # Write code here
-                self.outer.binary.acquire()
+                # Wait for a filled slot (blocks if queue is empty)
+                self.outer.filled_slots.acquire()
+                # Get mutual exclusion to access the queue
+                self.outer.mutex.acquire()
                 self.printDox(self.printerID)
-                self.outer.binary.release()
-                self.outer.semaphore.release()
+                self.outer.mutex.release()
+                # Signal that an item has been removed from the queue
+                self.outer.empty_slots.release()
 
         def printerSleep(self):
             sleepSeconds = random.randint(1, self.outer.MAX_PRINTER_SLEEP)
@@ -93,11 +101,15 @@ class Assignment1:
                 # Machine sleeps for a random amount of time
                 self.machineSleep()
                 # Machine wakes up and sends a print request
-                # Write code here 
-                self.outer.binary.acquire()
-                self.outer.semaphore.acquire()
+                # Write code here
+                # Wait for an empty slot (blocks if queue is full)
+                self.outer.empty_slots.acquire()
+                # Get mutual exclusion to access the queue
+                self.outer.mutex.acquire()
                 self.printRequest(self.machineID)
-                self.outer.binary.release()              
+                self.outer.mutex.release()
+                # Signal that a new item has been added to the queue
+                self.outer.filled_slots.release()
 
 
         def machineSleep(self):
