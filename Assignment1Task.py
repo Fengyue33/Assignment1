@@ -72,7 +72,9 @@ class Assignment1:
                 # Grab the request at the head of the queue and print it
                 # Write code here
                 # Wait for a filled slot (blocks if queue is empty)
-                self.outer.filled_slots.acquire()
+                # Use timeout to allow checking sim_active periodically
+                if not self.outer.filled_slots.acquire(timeout=0.5):
+                    continue  # Timeout, check sim_active again
                 # Get mutual exclusion to access the queue
                 self.outer.mutex.acquire()
                 self.printDox(self.printerID)
@@ -103,7 +105,9 @@ class Assignment1:
                 # Machine wakes up and sends a print request
                 # Write code here
                 # Wait for an empty slot (blocks if queue is full)
-                self.outer.empty_slots.acquire()
+                # Use timeout to allow checking sim_active periodically
+                if not self.outer.empty_slots.acquire(timeout=0.5):
+                    continue  # Timeout, check sim_active again
                 # Get mutual exclusion to access the queue
                 self.outer.mutex.acquire()
                 self.printRequest(self.machineID)
