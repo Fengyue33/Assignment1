@@ -46,6 +46,8 @@ class Assignment1:
         # Wait until all printer threads finish by joining them
         for printer in self.pThreads:
             printer.join()
+        for machine in self.mThreads:
+            machine.join()
 
         print("Simulation finished.")
 
