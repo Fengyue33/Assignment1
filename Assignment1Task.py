@@ -93,9 +93,9 @@ class Assignment1:
                 # Machine sleeps for a random amount of time
                 self.machineSleep()
                 # Machine wakes up and sends a print request
-                # Write code here
-                self.outer.semaphore.acquire()
+                # Write code here 
                 self.outer.binary.acquire()
+                self.outer.semaphore.acquire()
                 self.printRequest(self.machineID)
                 self.outer.binary.release()              
 
