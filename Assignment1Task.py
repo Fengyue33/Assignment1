@@ -94,6 +94,11 @@ class Assignment1:
                 self.machineSleep()
                 # Machine wakes up and sends a print request
                 # Write code here
+                self.outer.semaphore.acquire()
+                self.outer.binary.acquire()
+                self.printRequest(self.machineID)
+                self.outer.binary.release()              
+
 
         def machineSleep(self):
             sleepSeconds = random.randint(1, self.outer.MAX_MACHINE_SLEEP)
