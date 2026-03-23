@@ -19,13 +19,10 @@ class Assignment1:
         self.print_list = printList()  # Create an empty list of print requests
         self.mThreads = []             # list for machine threads
         self.pThreads = []             # list for printer threads
-        # Create semaphores for Task 2
-        # empty_slots: tracks available space in queue (initially 5)
-        self.empty_slots = threading.Semaphore(5)
-        # filled_slots: tracks items in queue (initially 0)
-        self.filled_slots = threading.Semaphore(0)
-        # mutex: ensures mutual exclusion when accessing the queue
-        self.mutex = threading.Semaphore(1)
+     
+         # Create semaphores
+        self.semaphore = threading.Semaphore(self.NUM_PRINTERS)  # counting semaphore
+        self.binary = threading.Semaphore(1)
 
     def startSimulation(self):
         # Create Machine and Printer threads   
@@ -71,16 +68,12 @@ class Assignment1:
                 self.printerSleep()
                 # Grab the request at the head of the queue and print it
                 # Write code here
-                # Wait for a filled slot (blocks if queue is empty)
-                # Use timeout to allow checking sim_active periodically
-                if not self.outer.filled_slots.acquire(timeout=0.5):
-                    continue  # Timeout, check sim_active again
                 # Get mutual exclusion to access the queue
-                self.outer.mutex.acquire()
+                self.outer.binary.acquire()
                 self.printDox(self.printerID)
-                self.outer.mutex.release()
+                self.outer.binary.release()
                 # Signal that an item has been removed from the queue
-                self.outer.empty_slots.release()
+                self.outer.semaphore.release()
 
         def printerSleep(self):
             sleepSeconds = random.randint(1, self.outer.MAX_PRINTER_SLEEP)
@@ -106,15 +99,13 @@ class Assignment1:
                 # Write code here
                 # Wait for an empty slot (blocks if queue is full)
                 # Use timeout to allow checking sim_active periodically
-                if not self.outer.empty_slots.acquire(timeout=0.5):
+                if not self.outer.semaphore.acquire(timeout=0.5):
                     continue  # Timeout, check sim_active again
                 # Get mutual exclusion to access the queue
-                self.outer.mutex.acquire()
+                self.outer.binary.acquire()
                 self.printRequest(self.machineID)
-                self.outer.mutex.release()
-                # Signal that a new item has been added to the queue
-                self.outer.filled_slots.release()
-
+                self.outer.binary.release()
+               
 
         def machineSleep(self):
             sleepSeconds = random.randint(1, self.outer.MAX_MACHINE_SLEEP)
